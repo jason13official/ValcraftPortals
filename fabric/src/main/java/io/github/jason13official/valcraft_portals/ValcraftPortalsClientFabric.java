@@ -4,6 +4,7 @@ import io.github.jason13official.valcraft_portals.impl.client.model.PortalModel;
 import io.github.jason13official.valcraft_portals.impl.client.renderer.PortalRenderer;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModTiles;
 import io.github.jason13official.valcraft_portals.impl.network.packet.OpenPortalTagScreenS2CPacket;
+import io.github.jason13official.valcraft_portals.impl.network.packet.PortalTravelS2CPacket;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
@@ -22,5 +23,6 @@ public class ValcraftPortalsClientFabric implements ClientModInitializer {
     BlockEntityRenderers.register(ModTiles.PORTAL, PortalRenderer::new);
 
     ClientPlayNetworking.registerGlobalReceiver(OpenPortalTagScreenS2CPacket.TYPE, (payload, context) -> ValcraftPortalsClient.handleOpenPortalTagScreen(payload));
+    ClientPlayNetworking.registerGlobalReceiver(PortalTravelS2CPacket.TYPE, (payload, context) -> ValcraftPortalsClient.handlePortalTravel(payload));
   }
 }

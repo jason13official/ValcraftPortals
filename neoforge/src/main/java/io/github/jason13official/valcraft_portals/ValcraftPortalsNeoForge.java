@@ -5,6 +5,7 @@ import io.github.jason13official.valcraft_portals.impl.common.registry.ModItems;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModTabs;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModTiles;
 import io.github.jason13official.valcraft_portals.impl.network.packet.OpenPortalTagScreenS2CPacket;
+import io.github.jason13official.valcraft_portals.impl.network.packet.PortalTravelS2CPacket;
 import io.github.jason13official.valcraft_portals.impl.network.packet.SetPortalTagC2SPacket;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -42,6 +43,8 @@ public class ValcraftPortalsNeoForge {
       PayloadRegistrar registrar = event.registrar(Constants.MOD_ID);
       registrar.playToClient(OpenPortalTagScreenS2CPacket.TYPE, OpenPortalTagScreenS2CPacket.STREAM_CODEC,
           (payload, context) -> ValcraftPortalsClient.handleOpenPortalTagScreen(payload));
+      registrar.playToClient(PortalTravelS2CPacket.TYPE, PortalTravelS2CPacket.STREAM_CODEC,
+          (payload, context) -> ValcraftPortalsClient.handlePortalTravel(payload));
       registrar.playToServer(SetPortalTagC2SPacket.TYPE, SetPortalTagC2SPacket.STREAM_CODEC, (payload, context) -> {
         if (context.player() instanceof ServerPlayer player) {
           SetPortalTagC2SPacket.handleOnServer(payload, player);

@@ -3,6 +3,8 @@ package io.github.jason13official.valcraft_portals.impl.common.portal;
 import io.github.jason13official.valcraft_portals.impl.common.block.PortalBlock;
 import io.github.jason13official.valcraft_portals.impl.common.config.ServerConfig;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModTags;
+import io.github.jason13official.valcraft_portals.impl.network.packet.PortalTravelS2CPacket;
+import io.github.jason13official.valcraft_portals.platform.Services;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -94,9 +96,17 @@ public class PortalTeleporter {
 
     level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.8F, 0.6F);
 
+    if (entity instanceof ServerPlayer player) {
+      Services.PLATFORM.sendToPlayer(player, new PortalTravelS2CPacket(false));
+    }
+
     return new DimensionTransition(destination, arrival, Vec3.ZERO, exit.toYRot(), entity.getXRot(), DimensionTransition.PLACE_PORTAL_TICKET.then(arrived -> {
       arrived.setPortalCooldown(COOLDOWN);
       arrived.level().playSound(null, arrived.getX(), arrived.getY(), arrived.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.8F, 0.6F);
+
+      if (arrived instanceof ServerPlayer player) {
+        Services.PLATFORM.sendToPlayer(player, new PortalTravelS2CPacket(true));
+      }
     }));
   }
 
