@@ -1,7 +1,9 @@
 package io.github.jason13official.valcraft_portals;
 
+import io.github.jason13official.valcraft_portals.impl.client.config.ClientConfig;
 import io.github.jason13official.valcraft_portals.impl.client.gui.PortalTagScreen;
 import io.github.jason13official.valcraft_portals.impl.client.gui.PortalTravelScreen;
+import io.github.jason13official.valcraft_portals.impl.common.config.ModConfigIO;
 import io.github.jason13official.valcraft_portals.impl.network.packet.OpenPortalTagScreenS2CPacket;
 import io.github.jason13official.valcraft_portals.impl.network.packet.PortalTravelS2CPacket;
 import java.util.function.Consumer;
@@ -15,6 +17,8 @@ public class ValcraftPortalsClient {
   private static PortalTravelScreen travelScreen;
 
   public static void init() {
+
+    ModConfigIO.getOrCreateClient();
   }
 
   public static void handleOpenPortalTagScreen(OpenPortalTagScreenS2CPacket packet) {
@@ -23,6 +27,10 @@ public class ValcraftPortalsClient {
   }
 
   public static void handlePortalTravel(PortalTravelS2CPacket packet) {
+
+    if (!ClientConfig.PORTAL_TRAVEL_SCREEN.get()) {
+      return;
+    }
 
     Minecraft minecraft = Minecraft.getInstance();
 

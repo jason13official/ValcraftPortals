@@ -31,6 +31,6 @@ public class ModBlocks {
         .noOcclusion()
         .noTerrainParticles()
         .pushReaction(PushReaction.BLOCK)
-        .lightLevel(state -> state.getValue(PortalBlock.LIT) && PortalBlock.isMaster(state) ? 12 : 0);
+        .lightLevel(state -> state.getValue(PortalBlock.ACTIVE) && PortalBlock.isMaster(state) ? 12 : 0);
   }
 }

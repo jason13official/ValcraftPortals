@@ -56,6 +56,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
 
   public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
   public static final BooleanProperty LIT = BlockStateProperties.LIT;
+  public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
   public static final EnumProperty<PortalPart> PART = EnumProperty.create("part", PortalPart.class);
 
   public static final MapCodec<PortalBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
@@ -84,7 +85,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   public PortalBlock(boolean restrictsItems, Properties pProperties) {
     super(pProperties);
     this.restrictsItems = restrictsItems;
-    this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false).setValue(PART, PortalPart.BOTTOM));
+    this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false).setValue(ACTIVE, false).setValue(PART, PortalPart.BOTTOM));
   }
 
   @Override
@@ -156,7 +157,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   @Override
   protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
 
-    pBuilder.add(FACING, LIT, PART);
+    pBuilder.add(FACING, LIT, ACTIVE, PART);
   }
 
   @Override

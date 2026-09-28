@@ -15,6 +15,7 @@ import net.minecraft.util.StringUtil;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -71,11 +72,37 @@ public class PortalBlockEntity extends BlockEntity implements Nameable {
 
   public static void tickServer(Level pLevel, BlockPos pPos, BlockState pState, PortalBlockEntity portal) {
 
-    if (!(pLevel instanceof ServerLevel level) || (level.getGameTime() + pPos.asLong()) % 20 != 0) {
+    if (!(pLevel instanceof ServerLevel level)) {
       return;
     }
 
-    portal.sync(level);
+    long time = level.getGameTime();
+
+    if ((time + pPos.asLong()) % 20 == 0) {
+      portal.sync(level);
+    }
+
+    if (time % 5 == 0) {
+      portal.updateActive(level, time);
+    }
+  }
+
+  private void updateActive(ServerLevel level, long time) {
+
+    BlockState state = level.getBlockState(worldPosition);
+    if (!(state.getBlock() instanceof PortalBlock)) {
+      return;
+    }
+
+    boolean linked = state.getValue(PortalBlock.LIT);
+    if (linked && isPlayerNearby(level, PortalBlock.activationArea(worldPosition, state.getValue(PortalBlock.FACING)))) {
+      lastPlayerNearby = time;
+    }
+
+    boolean active = linked && time - lastPlayerNearby <= LINGER_TICKS;
+    if (state.getValue(PortalBlock.ACTIVE) != active) {
+      level.setBlock(worldPosition, state.setValue(PortalBlock.ACTIVE, active), Block.UPDATE_CLIENTS);
+    }
   }
 
   public void sync(ServerLevel level) {
