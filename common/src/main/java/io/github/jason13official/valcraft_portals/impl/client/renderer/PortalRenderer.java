@@ -28,6 +28,8 @@ import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
 
@@ -50,6 +52,12 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
 
     this.woodModel = new PortalModel(context.bakeLayer(PortalModel.WOOD_LAYER));
     this.stoneModel = new PortalModel(context.bakeLayer(PortalModel.STONE_LAYER));
+  }
+
+  @Override
+  public boolean shouldRender(PortalBlockEntity pBlockEntity, Vec3 pCameraPos) {
+
+    return true;
   }
 
   @Override
@@ -145,5 +153,11 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
   @Override
   public int getViewDistance() {
     return 128;
+  }
+
+  public AABB getRenderBoundingBox(PortalBlockEntity portal) {
+
+    BlockPos pos = portal.getBlockPos();
+    return new AABB(pos.getX() - 1.5, pos.getY(), pos.getZ() - 1.5, pos.getX() + 2.5, pos.getY() + 3.25, pos.getZ() + 2.5);
   }
 }

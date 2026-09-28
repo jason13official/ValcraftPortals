@@ -87,6 +87,12 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
     this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false).setValue(PART, PortalPart.BOTTOM));
   }
 
+  @Override
+  protected boolean skipRendering(BlockState pState, BlockState pAdjacentState, Direction pDirection) {
+
+    return false;
+  }
+
   public boolean restrictsItems() {
     return restrictsItems;
   }
