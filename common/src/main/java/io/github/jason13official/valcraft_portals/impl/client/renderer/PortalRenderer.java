@@ -112,11 +112,6 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
 
     Long2ObjectMap<SortedSet<BlockDestructionProgress>> destruction = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).valcraft_portals$getDestructionProgress();
 
-    SortedSet<BlockDestructionProgress> own = destruction.get(master.asLong());
-    if (own != null && !own.isEmpty()) {
-      return -1;
-    }
-
     int progress = -1;
     Direction facing = state.getValue(PortalBlock.FACING);
     for (PortalPart part : PortalPart.values()) {
