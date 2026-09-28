@@ -1,7 +1,7 @@
 package io.github.jason13official.valcraft_portals.platform.services;
 
+import io.github.jason13official.valcraft_portals.impl.network.packet.ModPacket;
 import java.nio.file.Path;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab;
 
@@ -42,5 +42,5 @@ public interface IPlatformHelper {
 
   Path getConfigDirectory();
 
-  void sendToPlayer(ServerPlayer player, CustomPacketPayload payload);
+  void sendToPlayer(ServerPlayer player, ModPacket packet);
 }

@@ -14,6 +14,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 
 public class PortalModel extends Model {
@@ -179,16 +180,21 @@ public class PortalModel extends Model {
   }
 
   public void renderFrame(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
-    this.frame.render(poseStack, buffer, packedLight, packedOverlay, color);
+    render(this.frame, poseStack, buffer, packedLight, packedOverlay, color);
   }
 
   public void renderGlyphs(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
-    this.glyphs.render(poseStack, buffer, packedLight, packedOverlay, color);
+    render(this.glyphs, poseStack, buffer, packedLight, packedOverlay, color);
+  }
+
+  private static void render(ModelPart part, PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
+    part.render(poseStack, buffer, packedLight, packedOverlay, FastColor.ARGB32.red(color) / 255.0F, FastColor.ARGB32.green(color) / 255.0F,
+        FastColor.ARGB32.blue(color) / 255.0F, FastColor.ARGB32.alpha(color) / 255.0F);
   }
 
   @Override
-  public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
-    renderFrame(poseStack, buffer, packedLight, packedOverlay, color);
-    renderGlyphs(poseStack, buffer, packedLight, packedOverlay, color);
+  public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+    this.frame.render(poseStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+    this.glyphs.render(poseStack, buffer, packedLight, packedOverlay, red, green, blue, alpha);
   }
 }

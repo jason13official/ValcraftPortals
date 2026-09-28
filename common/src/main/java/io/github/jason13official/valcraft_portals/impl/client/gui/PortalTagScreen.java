@@ -66,6 +66,7 @@ public class PortalTagScreen extends Screen {
   @Override
   public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 
+    this.renderBackground(guiGraphics);
     super.render(guiGraphics, mouseX, mouseY, partialTick);
 
     guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 40, 0xFFFFFF);

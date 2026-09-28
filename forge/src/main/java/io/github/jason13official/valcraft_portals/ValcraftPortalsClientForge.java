@@ -3,15 +3,14 @@ package io.github.jason13official.valcraft_portals;
 import io.github.jason13official.valcraft_portals.impl.client.model.PortalModel;
 import io.github.jason13official.valcraft_portals.impl.client.renderer.PortalRenderer;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModTiles;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 
-public class ValcraftPortalsClientNeoForge {
+public class ValcraftPortalsClientForge {
 
-  public ValcraftPortalsClientNeoForge(IEventBus eventBus) {
+  public ValcraftPortalsClientForge(IEventBus eventBus) {
 
-    ValcraftPortalsClient.c2s = PacketDistributor::sendToServer;
+    ValcraftPortalsClient.c2s = ValcraftPortalsForge.CHANNEL::sendToServer;
     ValcraftPortalsClient.init();
 
     eventBus.addListener((EntityRenderersEvent.RegisterLayerDefinitions event) -> {

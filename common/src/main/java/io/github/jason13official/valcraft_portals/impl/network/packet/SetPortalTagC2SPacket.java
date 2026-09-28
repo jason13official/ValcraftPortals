@@ -5,30 +5,34 @@ import io.github.jason13official.valcraft_portals.ValcraftPortals;
 import io.github.jason13official.valcraft_portals.impl.common.block.PortalBlock;
 import io.github.jason13official.valcraft_portals.impl.common.block.entity.PortalBlockEntity;
 import io.github.jason13official.valcraft_portals.impl.common.portal.PortalNetwork;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 
-public record SetPortalTagC2SPacket(BlockPos pos, String tag) implements CustomPacketPayload {
+public record SetPortalTagC2SPacket(BlockPos pos, String tag) implements ModPacket {
 
-  public static final CustomPacketPayload.Type<SetPortalTagC2SPacket> TYPE = new CustomPacketPayload.Type<>(ValcraftPortals.id("set_portal_tag"));
+  public static final ResourceLocation ID = ValcraftPortals.id("set_portal_tag");
 
-  public static final StreamCodec<ByteBuf, SetPortalTagC2SPacket> STREAM_CODEC = StreamCodec.composite(
-      BlockPos.STREAM_CODEC, SetPortalTagC2SPacket::pos,
-      ByteBufCodecs.stringUtf8(PortalBlockEntity.MAX_TAG_LENGTH), SetPortalTagC2SPacket::tag,
-      SetPortalTagC2SPacket::new);
+  private static final double MAX_DISTANCE_SQR = 8.0 * 8.0;
 
-  private static final double REACH = 3.0;
+  public static SetPortalTagC2SPacket read(FriendlyByteBuf input) {
+    return new SetPortalTagC2SPacket(input.readBlockPos(), input.readUtf(PortalBlockEntity.MAX_TAG_LENGTH));
+  }
 
   @Override
-  public Type<? extends CustomPacketPayload> type() {
-    return TYPE;
+  public void write(FriendlyByteBuf output) {
+    output.writeBlockPos(this.pos);
+    output.writeUtf(this.tag, PortalBlockEntity.MAX_TAG_LENGTH);
+  }
+
+  @Override
+  public ResourceLocation id() {
+    return ID;
   }
 
   public static void handleOnServer(SetPortalTagC2SPacket packet, ServerPlayer player) {
@@ -36,7 +40,7 @@ public record SetPortalTagC2SPacket(BlockPos pos, String tag) implements CustomP
     ServerLevel level = player.serverLevel();
     BlockPos pos = packet.pos();
 
-    if (!level.isLoaded(pos) || !player.canInteractWithBlock(pos, REACH)) {
+    if (!level.isLoaded(pos) || player.distanceToSqr(Vec3.atCenterOf(pos)) > MAX_DISTANCE_SQR) {
       Constants.LOG.debug("Player {} tried to retag an out of reach portal at {}", player.getName().getString(), pos);
       return;
     }

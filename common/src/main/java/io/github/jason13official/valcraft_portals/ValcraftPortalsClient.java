@@ -4,15 +4,15 @@ import io.github.jason13official.valcraft_portals.impl.client.config.ClientConfi
 import io.github.jason13official.valcraft_portals.impl.client.gui.PortalTagScreen;
 import io.github.jason13official.valcraft_portals.impl.client.gui.PortalTravelScreen;
 import io.github.jason13official.valcraft_portals.impl.common.config.ModConfigIO;
+import io.github.jason13official.valcraft_portals.impl.network.packet.ModPacket;
 import io.github.jason13official.valcraft_portals.impl.network.packet.OpenPortalTagScreenS2CPacket;
 import io.github.jason13official.valcraft_portals.impl.network.packet.PortalTravelS2CPacket;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public class ValcraftPortalsClient {
 
-  public static Consumer<CustomPacketPayload> c2s = payload -> {};
+  public static Consumer<ModPacket> c2s = packet -> {};
 
   private static PortalTravelScreen travelScreen;
 

@@ -28,7 +28,6 @@ import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
@@ -85,7 +84,7 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
 
     if (progress >= 0) {
       VertexConsumer crumbling = new SheetedDecalTextureGenerator(
-          Minecraft.getInstance().renderBuffers().crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(progress)), origin, 1.0F);
+          Minecraft.getInstance().renderBuffers().crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(progress)), origin.pose(), origin.normal(), 1.0F);
       model.renderFrame(pPoseStack, crumbling, pPackedLight, pPackedOverlay, -1);
       model.renderGlyphs(pPoseStack, crumbling, pPackedLight, pPackedOverlay, -1);
     }
@@ -144,7 +143,7 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
 
   private static void vertex(PoseStack.Pose pose, VertexConsumer consumer, float x, float y, float z, float u, float v, int color, int light, int overlay) {
 
-    consumer.addVertex(pose, x, y, z).setColor(color).setUv(u, v).setOverlay(overlay).setLight(light).setNormal(pose, 0.0F, 0.0F, -1.0F);
+    consumer.vertex(pose.pose(), x, y, z).color(color).uv(u, v).overlayCoords(overlay).uv2(light).normal(pose.normal(), 0.0F, 0.0F, -1.0F).endVertex();
   }
 
   @Override
@@ -155,11 +154,5 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
   @Override
   public int getViewDistance() {
     return 128;
-  }
-
-  public AABB getRenderBoundingBox(PortalBlockEntity portal) {
-
-    BlockPos pos = portal.getBlockPos();
-    return new AABB(pos.getX() - 1.5, pos.getY(), pos.getZ() - 1.5, pos.getX() + 2.5, pos.getY() + 3.25, pos.getZ() + 2.5);
   }
 }

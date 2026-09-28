@@ -10,14 +10,12 @@ import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -25,15 +23,12 @@ public class PortalNetwork extends SavedData {
 
   private static final String NAME = Constants.MOD_ID + "_network";
 
-  private static final SavedData.Factory<PortalNetwork> FACTORY = new SavedData.Factory<>(PortalNetwork::new, PortalNetwork::load,
-      DataFixTypes.SAVED_DATA_RANDOM_SEQUENCES);
-
   private final Map<String, List<GlobalPos>> byTag = new LinkedHashMap<>();
   private final Map<GlobalPos, String> tagOf = new HashMap<>();
 
   public static PortalNetwork get(MinecraftServer server) {
 
-    return server.overworld().getDataStorage().computeIfAbsent(FACTORY, NAME);
+    return server.overworld().getDataStorage().computeIfAbsent(PortalNetwork::load, PortalNetwork::new, NAME);
   }
 
   public Optional<String> tagOf(GlobalPos portal) {
@@ -136,7 +131,7 @@ public class PortalNetwork extends SavedData {
     }
   }
 
-  private static PortalNetwork load(CompoundTag tag, HolderLookup.Provider registries) {
+  private static PortalNetwork load(CompoundTag tag) {
 
     PortalNetwork network = new PortalNetwork();
     ListTag portals = tag.getList("Portals", Tag.TAG_COMPOUND);
@@ -154,7 +149,7 @@ public class PortalNetwork extends SavedData {
   }
 
   @Override
-  public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+  public CompoundTag save(CompoundTag tag) {
 
     ListTag portals = new ListTag();
 

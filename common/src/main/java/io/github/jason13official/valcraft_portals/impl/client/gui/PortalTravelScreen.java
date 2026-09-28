@@ -70,7 +70,7 @@ public class PortalTravelScreen extends Screen {
 
     for (int dx = -16; dx <= 16; dx += 16) {
       for (int dz = -16; dz <= 16; dz += 16) {
-        if (!minecraft.levelRenderer.isSectionCompiled(pos.offset(dx, 0, dz))) {
+        if (!minecraft.levelRenderer.isChunkCompiled(pos.offset(dx, 0, dz))) {
           return false;
         }
       }
@@ -87,7 +87,7 @@ public class PortalTravelScreen extends Screen {
   }
 
   @Override
-  public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+  public void renderBackground(GuiGraphics guiGraphics) {
 
     guiGraphics.fill(0, 0, this.width, this.height, FastColor.ARGB32.color((int) (255 * opacity(Util.getMillis())), 0, 0, 0));
   }
@@ -95,6 +95,7 @@ public class PortalTravelScreen extends Screen {
   @Override
   public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 
+    this.renderBackground(guiGraphics);
     super.render(guiGraphics, mouseX, mouseY, partialTick);
 
     long now = Util.getMillis();

@@ -18,7 +18,7 @@
     }
   },
   "result": {
-    "id": "valcraft_portals:stone_portal",
+    "item": "valcraft_portals:stone_portal",
     "count": 1
   }
 }

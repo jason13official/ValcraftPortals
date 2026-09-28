@@ -4,14 +4,13 @@ import io.github.jason13official.valcraft_portals.impl.client.PortalEffects;
 import io.github.jason13official.valcraft_portals.impl.common.block.PortalBlock;
 import io.github.jason13official.valcraft_portals.impl.common.portal.PortalNetwork;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModTiles;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
-import net.minecraft.util.StringUtil;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -64,6 +63,12 @@ public class PortalBlockEntity extends BlockEntity implements Nameable {
       }
     }
     return false;
+  }
+
+  public AABB getRenderBoundingBox() {
+
+    return new AABB(worldPosition.getX() - 1.5, worldPosition.getY(), worldPosition.getZ() - 1.5, worldPosition.getX() + 2.5, worldPosition.getY() + 3.25,
+        worldPosition.getZ() + 2.5);
   }
 
   public float getActivation(float partialTick) {
@@ -129,19 +134,19 @@ public class PortalBlockEntity extends BlockEntity implements Nameable {
 
   public static String sanitize(String tag) {
 
-    String filtered = StringUtil.filterText(tag);
+    String filtered = SharedConstants.filterText(tag);
     return filtered.length() > MAX_TAG_LENGTH ? filtered.substring(0, MAX_TAG_LENGTH) : filtered;
   }
 
   @Override
-  protected void loadAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
-    super.loadAdditional(nbt, registries);
+  public void load(CompoundTag nbt) {
+    super.load(nbt);
     this.tag = sanitize(nbt.getString("Tag"));
   }
 
   @Override
-  protected void saveAdditional(CompoundTag nbt, HolderLookup.Provider registries) {
-    super.saveAdditional(nbt, registries);
+  protected void saveAdditional(CompoundTag nbt) {
+    super.saveAdditional(nbt);
     nbt.putString("Tag", tag);
   }
 

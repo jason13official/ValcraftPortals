@@ -1,8 +1,5 @@
 package io.github.jason13official.valcraft_portals.impl.common.block;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.jason13official.valcraft_portals.impl.common.block.entity.PortalBlockEntity;
 import io.github.jason13official.valcraft_portals.impl.common.portal.PortalNetwork;
 import io.github.jason13official.valcraft_portals.impl.common.portal.PortalTeleporter;
@@ -20,6 +17,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,7 +32,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -46,23 +43,17 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class PortalBlock extends Block implements EntityBlock, Portal {
+public class PortalBlock extends Block implements EntityBlock {
 
   public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
   public static final BooleanProperty LIT = BlockStateProperties.LIT;
   public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
   public static final EnumProperty<PortalPart> PART = EnumProperty.create("part", PortalPart.class);
-
-  public static final MapCodec<PortalBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-      Codec.BOOL.fieldOf("restricts_items").forGetter(PortalBlock::restrictsItems),
-      propertiesCodec()
-  ).apply(instance, PortalBlock::new));
 
   private static final Map<Axis, Map<PortalPart, VoxelShape>> SHAPES = new EnumMap<>(Axis.class);
 
@@ -89,7 +80,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  protected boolean skipRendering(BlockState pState, BlockState pAdjacentState, Direction pDirection) {
+  public boolean skipRendering(BlockState pState, BlockState pAdjacentState, Direction pDirection) {
 
     return false;
   }
@@ -150,11 +141,6 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  public MapCodec<PortalBlock> codec() {
-    return CODEC;
-  }
-
-  @Override
   protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
 
     pBuilder.add(FACING, LIT, ACTIVE, PART);
@@ -197,7 +183,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+  public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
 
     if (!pLevel.isClientSide() && pPlayer.isCreative() && !isMaster(pState)) {
       BlockPos master = masterPos(pPos, pState);
@@ -209,11 +195,11 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
       }
     }
 
-    return super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+    super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
   }
 
   @Override
-  protected BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pPos, BlockPos pNeighborPos) {
+  public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pPos, BlockPos pNeighborPos) {
 
     Direction facing = pState.getValue(FACING);
     Direction along = alongDirection(facing);
@@ -235,19 +221,19 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  protected VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+  public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
 
     return SHAPES.get(pState.getValue(FACING).getClockWise().getAxis()).get(pState.getValue(PART));
   }
 
   @Override
-  protected BlockState rotate(BlockState pState, Rotation pRotation) {
+  public BlockState rotate(BlockState pState, Rotation pRotation) {
 
     return pState.setValue(FACING, pRotation.rotate(pState.getValue(FACING)));
   }
 
   @Override
-  protected BlockState mirror(BlockState pState, Mirror pMirror) {
+  public BlockState mirror(BlockState pState, Mirror pMirror) {
 
     return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
   }
@@ -267,7 +253,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   // region client
 
   @Override
-  protected RenderShape getRenderShape(BlockState pState) {
+  public RenderShape getRenderShape(BlockState pState) {
 
     return RenderShape.INVISIBLE;
   }
@@ -277,7 +263,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   // region server
 
   @Override
-  protected void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pMovedByPiston) {
+  public void onPlace(BlockState pState, Level pLevel, BlockPos pPos, BlockState pOldState, boolean pMovedByPiston) {
 
     if (!pLevel.isClientSide() && isMaster(pState) && !pOldState.is(this)) {
       pLevel.scheduleTick(pPos, this, 1);
@@ -285,7 +271,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  protected void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
+  public void tick(BlockState pState, ServerLevel pLevel, BlockPos pPos, RandomSource pRandom) {
 
     if (isMaster(pState) && pLevel.getBlockEntity(pPos) instanceof PortalBlockEntity portal) {
       portal.sync(pLevel);
@@ -293,7 +279,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  protected void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
+  public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pMovedByPiston) {
 
     if (pLevel instanceof ServerLevel level && isMaster(pState) && !pState.is(pNewState.getBlock())) {
       PortalNetwork.get(level.getServer()).remove(level.getServer(), GlobalPos.of(level.dimension(), pPos));
@@ -316,7 +302,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
+  public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
 
     if (pPlayer instanceof ServerPlayer player) {
       BlockPos master = masterPos(pPos, pState);
@@ -329,7 +315,7 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
   }
 
   @Override
-  protected void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
+  public void entityInside(BlockState pState, Level pLevel, BlockPos pPos, Entity pEntity) {
 
     if (!(pEntity instanceof ServerPlayer player) || !(pLevel instanceof ServerLevel level)) {
       return;
@@ -337,14 +323,8 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
 
     BlockPos master = masterPos(pPos, pState);
     if (player.getBoundingBox().intersects(travelArea(master, pState.getValue(FACING))) && PortalTeleporter.canEnter(player, level, master, level.getBlockState(master))) {
-      player.setAsInsidePortal(this, master);
+      PortalTeleporter.schedule(player, level, master);
     }
-  }
-
-  @Override
-  public DimensionTransition getPortalDestination(ServerLevel level, Entity entity, BlockPos pos) {
-
-    return PortalTeleporter.destination(level, entity, pos);
   }
 
   @Override

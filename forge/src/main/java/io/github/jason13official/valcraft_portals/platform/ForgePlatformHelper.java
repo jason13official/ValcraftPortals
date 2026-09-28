@@ -1,21 +1,22 @@
 package io.github.jason13official.valcraft_portals.platform;
 
+import io.github.jason13official.valcraft_portals.ValcraftPortalsForge;
+import io.github.jason13official.valcraft_portals.impl.network.packet.ModPacket;
 import io.github.jason13official.valcraft_portals.platform.services.IPlatformHelper;
 import java.nio.file.Path;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTab.Builder;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.network.PacketDistributor;
 
-public class NeoForgePlatformHelper implements IPlatformHelper {
+public class ForgePlatformHelper implements IPlatformHelper {
 
   @Override
   public String getPlatformName() {
-    return "NeoForge";
+    return "Forge";
   }
 
   @Override
@@ -41,8 +42,8 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
   }
 
   @Override
-  public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
+  public void sendToPlayer(ServerPlayer player, ModPacket packet) {
 
-    PacketDistributor.sendToPlayer(player, payload);
+    ValcraftPortalsForge.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
   }
 }

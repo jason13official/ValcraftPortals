@@ -1,11 +1,13 @@
 package io.github.jason13official.valcraft_portals.platform;
 
+import io.github.jason13official.valcraft_portals.impl.network.packet.ModPacket;
 import io.github.jason13official.valcraft_portals.platform.services.IPlatformHelper;
 import java.nio.file.Path;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab.Builder;
 
@@ -39,8 +41,10 @@ public class FabricPlatformHelper implements IPlatformHelper {
   }
 
   @Override
-  public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
+  public void sendToPlayer(ServerPlayer player, ModPacket packet) {
 
-    ServerPlayNetworking.send(player, payload);
+    FriendlyByteBuf buf = PacketByteBufs.create();
+    packet.write(buf);
+    ServerPlayNetworking.send(player, packet.id(), buf);
   }
 }
