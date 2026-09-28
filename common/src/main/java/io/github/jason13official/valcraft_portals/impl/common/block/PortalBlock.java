@@ -34,6 +34,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -45,12 +46,13 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class PortalBlock extends Block implements EntityBlock {
+public class PortalBlock extends Block implements EntityBlock, Portal {
 
   public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
   public static final BooleanProperty LIT = BlockStateProperties.LIT;
@@ -311,9 +313,15 @@ public class PortalBlock extends Block implements EntityBlock {
     }
 
     BlockPos master = masterPos(pPos, pState);
-    if (player.getBoundingBox().intersects(travelArea(master, pState.getValue(FACING)))) {
-      PortalTeleporter.tryTeleport(player, level, master, level.getBlockState(master));
+    if (player.getBoundingBox().intersects(travelArea(master, pState.getValue(FACING))) && PortalTeleporter.canEnter(player, level, master, level.getBlockState(master))) {
+      player.setAsInsidePortal(this, master);
     }
+  }
+
+  @Override
+  public DimensionTransition getPortalDestination(ServerLevel level, Entity entity, BlockPos pos) {
+
+    return PortalTeleporter.destination(level, entity, pos);
   }
 
   @Override

@@ -17,12 +17,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.Vec3;
 
 public class PortalTeleporter {
@@ -31,53 +33,71 @@ public class PortalTeleporter {
   private static final double EXIT_DISTANCE = 1.2;
   private static final int MAX_CONTAINER_DEPTH = 4;
 
-  public static void tryTeleport(ServerPlayer player, ServerLevel level, BlockPos master, BlockState state) {
+  public static boolean canEnter(ServerPlayer player, ServerLevel level, BlockPos master, BlockState state) {
 
-    if (player.isOnPortalCooldown() || player.isPassenger() || !(state.getBlock() instanceof PortalBlock portal)) {
-      return;
+    if (player.isOnPortalCooldown() || !player.canUsePortal(false) || !(state.getBlock() instanceof PortalBlock portal)) {
+      return false;
     }
 
-    PortalNetwork network = PortalNetwork.get(level.getServer());
-    Optional<GlobalPos> partner = network.partner(GlobalPos.of(level.dimension(), master));
+    Optional<GlobalPos> partner = PortalNetwork.get(level.getServer()).partner(GlobalPos.of(level.dimension(), master));
     if (partner.isEmpty()) {
-      return;
+      return false;
     }
 
     if (portal.restrictsItems() && ServerConfig.RESTRICT_ITEMS.get() && carriesRestricted(player)) {
       warn(player, Component.translatable("message.valcraft_portals.restricted").withStyle(ChatFormatting.RED));
       player.setPortalCooldown(COOLDOWN);
-      return;
+      return false;
     }
 
     ServerLevel destination = level.getServer().getLevel(partner.get().dimension());
     if (destination == null || (destination != level && !ServerConfig.ALLOW_CROSS_DIMENSION.get())) {
       warn(player, Component.translatable("message.valcraft_portals.cross_dimension").withStyle(ChatFormatting.RED));
       player.setPortalCooldown(COOLDOWN);
-      return;
+      return false;
+    }
+
+    return true;
+  }
+
+  public static DimensionTransition destination(ServerLevel level, Entity entity, BlockPos master) {
+
+    BlockState state = level.getBlockState(master);
+    if (!(state.getBlock() instanceof PortalBlock)) {
+      return null;
+    }
+
+    PortalNetwork network = PortalNetwork.get(level.getServer());
+    Optional<GlobalPos> partner = network.partner(GlobalPos.of(level.dimension(), master));
+    if (partner.isEmpty()) {
+      return null;
+    }
+
+    ServerLevel destination = level.getServer().getLevel(partner.get().dimension());
+    if (destination == null) {
+      return null;
     }
 
     BlockPos target = partner.get().pos();
     BlockState targetState = destination.getBlockState(target);
     if (!(targetState.getBlock() instanceof PortalBlock) || !PortalBlock.isMaster(targetState)) {
       network.remove(level.getServer(), partner.get());
-      return;
+      return null;
     }
 
     Direction sourceFacing = state.getValue(PortalBlock.FACING);
-    Vec3 sourceCenter = Vec3.atBottomCenterOf(master);
-    Vec3 offset = player.position().subtract(sourceCenter);
+    Vec3 offset = entity.position().subtract(Vec3.atBottomCenterOf(master));
     boolean front = offset.x * sourceFacing.getStepX() + offset.z * sourceFacing.getStepZ() >= 0;
 
     Direction exit = front ? targetState.getValue(PortalBlock.FACING) : targetState.getValue(PortalBlock.FACING).getOpposite();
     Vec3 arrival = Vec3.atBottomCenterOf(target).add(exit.getStepX() * EXIT_DISTANCE, 0.0, exit.getStepZ() * EXIT_DISTANCE);
 
-    level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.8F, 0.6F);
+    level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.8F, 0.6F);
 
-    player.setPortalCooldown(COOLDOWN);
-    player.teleportTo(destination, arrival.x, arrival.y, arrival.z, exit.toYRot(), player.getXRot());
-    player.setPortalCooldown(COOLDOWN);
-
-    destination.playSound(null, arrival.x, arrival.y, arrival.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.8F, 0.6F);
+    return new DimensionTransition(destination, arrival, Vec3.ZERO, exit.toYRot(), entity.getXRot(), DimensionTransition.PLACE_PORTAL_TICKET.then(arrived -> {
+      arrived.setPortalCooldown(COOLDOWN);
+      arrived.level().playSound(null, arrived.getX(), arrived.getY(), arrived.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.8F, 0.6F);
+    }));
   }
 
   public static boolean carriesRestricted(Player player) {
