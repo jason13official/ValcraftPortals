@@ -12,6 +12,13 @@
       ],
       "conditions": [
         {
+          "condition": "minecraft:block_state_property",
+          "block": "valcraft_portals:portal",
+          "properties": {
+            "part": "bottom"
+          }
+        },
+        {
           "condition": "minecraft:survives_explosion"
         }
       ]

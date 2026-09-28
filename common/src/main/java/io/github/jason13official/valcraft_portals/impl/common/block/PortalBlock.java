@@ -170,6 +170,22 @@ public class PortalBlock extends Block implements EntityBlock {
   }
 
   @Override
+  public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+
+    if (!pLevel.isClientSide() && pPlayer.isCreative() && !isMaster(pState)) {
+      BlockPos master = masterPos(pPos, pState);
+      BlockState masterState = pLevel.getBlockState(master);
+
+      if (masterState.is(this) && isMaster(masterState) && masterState.getValue(FACING) == pState.getValue(FACING)) {
+        pLevel.setBlock(master, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
+        pLevel.levelEvent(null, 2001, master, Block.getId(masterState));
+      }
+    }
+
+    return super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+  }
+
+  @Override
   protected BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel, BlockPos pPos, BlockPos pNeighborPos) {
 
     Direction facing = pState.getValue(FACING);
