@@ -114,6 +114,22 @@ public class PortalBlock extends Block implements EntityBlock, Portal {
     return pos.relative(alongDirection(state.getValue(FACING)), -part.dx).below(part.dy);
   }
 
+  public static AABB activationArea(BlockPos master, Direction facing) {
+    double cx = master.getX() + 0.5;
+    double cz = master.getZ() + 0.5;
+    double y = master.getY();
+    double front = 5.0;
+    double behind = 3.0;
+    double half = 2.0;
+
+    return switch (facing) {
+      case NORTH -> new AABB(cx - half, y - 0.5, cz - front, cx + half, y + 3.5, cz + behind);
+      case SOUTH -> new AABB(cx - half, y - 0.5, cz - behind, cx + half, y + 3.5, cz + front);
+      case WEST -> new AABB(cx - front, y - 0.5, cz - half, cx + behind, y + 3.5, cz + half);
+      default -> new AABB(cx - behind, y - 0.5, cz - half, cx + front, y + 3.5, cz + half);
+    };
+  }
+
   public static AABB travelArea(BlockPos master, Direction facing) {
     double cx = master.getX() + 0.5;
     double cz = master.getZ() + 0.5;

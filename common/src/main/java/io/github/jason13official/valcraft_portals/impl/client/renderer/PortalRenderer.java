@@ -69,7 +69,7 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
     }
 
     boolean stone = state.is(ModBlocks.STONE_PORTAL);
-    boolean lit = state.getValue(PortalBlock.LIT);
+    float activation = portal.getActivation(pPartialTick);
     PortalModel model = stone ? stoneModel : woodModel;
     PoseStack.Pose origin = pPoseStack.last();
     int progress = destroyProgress(portal.getBlockPos(), state);
@@ -90,9 +90,11 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
       model.renderGlyphs(pPoseStack, crumbling, pPackedLight, pPackedOverlay, -1);
     }
 
-    if (lit && portal.getLevel() != null) {
+    if (activation > 0.0F && portal.getLevel() != null) {
       float time = (portal.getLevel().getGameTime() % 72000L) + pPartialTick;
-      float pulse = 0.85F + 0.15F * Mth.sin(time * 0.15F);
+      float pulse = (0.85F + 0.15F * Mth.sin(time * 0.15F)) * activation;
+      int swirlAlpha = (int) (230 * activation);
+      float swirlScale = 0.6F + 0.4F * activation;
 
       int glyphColor = FastColor.ARGB32.color(255, (int) (255 * pulse), (int) (150 * pulse), (int) (60 * pulse));
       model.renderGlyphs(pPoseStack, pBufferSource.getBuffer(RenderType.eyes(GLYPH_TEXTURE)), LightTexture.FULL_BRIGHT, pPackedOverlay, glyphColor);
@@ -100,12 +102,12 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
       VertexConsumer swirl = pBufferSource.getBuffer(RenderType.entityTranslucent(SWIRL_TEXTURE));
       pPoseStack.pushPose();
       pPoseStack.mulPose(Axis.ZP.rotation(time * 0.05F));
-      quad(pPoseStack.last(), swirl, SWIRL_RADIUS, -0.004F, 0xE6FFFFFF, pPackedLight, pPackedOverlay);
+      quad(pPoseStack.last(), swirl, SWIRL_RADIUS * swirlScale, -0.004F, FastColor.ARGB32.color(swirlAlpha, 255, 255, 255), pPackedLight, pPackedOverlay);
       pPoseStack.popPose();
 
       pPoseStack.pushPose();
       pPoseStack.mulPose(Axis.ZP.rotation(-time * 0.03F));
-      quad(pPoseStack.last(), swirl, SWIRL_RADIUS * 0.9F, 0.004F, 0xB3FFFFFF, pPackedLight, pPackedOverlay);
+      quad(pPoseStack.last(), swirl, SWIRL_RADIUS * 0.9F * swirlScale, 0.004F, FastColor.ARGB32.color((int) (swirlAlpha * 0.78F), 255, 255, 255), pPackedLight, pPackedOverlay);
       pPoseStack.popPose();
 
       int glow = (int) (200 * pulse);
