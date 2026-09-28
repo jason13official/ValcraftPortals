@@ -3,6 +3,7 @@ package io.github.jason13official.valcraft_portals.impl.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.jason13official.valcraft_portals.ValcraftPortals;
+import java.util.EnumSet;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -12,6 +13,7 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 
 public class PortalModel extends Model {
@@ -21,7 +23,7 @@ public class PortalModel extends Model {
 
   private static final int TEX_WIDTH = 128;
   private static final int TEX_HEIGHT = 64;
-  private static final float GLYPH_OFFSET = 0.05F;
+  private static final float GLYPH_OFFSET = 0.25F;
 
   private final ModelPart frame;
   private final ModelPart glyphs;
@@ -54,12 +56,13 @@ public class PortalModel extends Model {
       float r = radius + (index % 3 - 1) * 0.5F;
       float x = r * Mth.sin(angle);
       float y = -r * Mth.cos(angle);
+      float segmentDepth = depth + (index % 2) * 0.2F;
 
       frame.addOrReplaceChild("ring_" + index, CubeListBuilder.create().texOffs(uvU(index, 36), uvV(index, 12))
-          .addBox(-3.75F, -thickness / 2.0F, -depth / 2.0F, 7.5F, thickness, depth), PartPose.offsetAndRotation(x, y, 0.0F, 0.0F, 0.0F, angle));
+          .addBox(-3.75F, -thickness / 2.0F, -segmentDepth / 2.0F, 7.5F, thickness, segmentDepth), PartPose.offsetAndRotation(x, y, 0.0F, 0.0F, 0.0F, angle));
 
       if (Math.abs(degrees) >= 50 && Math.abs(degrees) <= 130) {
-        addGlyph(glyphs, "glyph_" + index, rune++, x, y, angle, depth, 0.0F);
+        addGlyph(glyphs, "glyph_" + index, rune++, x, y, angle, segmentDepth, 0.0F);
       }
 
       index++;
@@ -107,13 +110,13 @@ public class PortalModel extends Model {
 
     frame.addOrReplaceChild("base", CubeListBuilder.create()
             .texOffs(0, 0).addBox(-18.0F, -1.5F, -6.0F, 36.0F, 3.0F, 12.0F)
-            .texOffs(0, 24).addBox(-15.0F, -1.5F, -8.0F, 30.0F, 3.0F, 16.0F),
+            .texOffs(0, 24).addBox(-15.0F, -1.3F, -8.0F, 30.0F, 2.8F, 16.0F),
         PartPose.offset(0.0F, 20.5F, 0.0F));
 
     for (int side = -1; side <= 1; side += 2) {
-      frame.addOrReplaceChild("footing_low_" + (side + 1), CubeListBuilder.create().texOffs(40, 44).addBox(-4.5F, -2.0F, -4.5F, 9.0F, 4.0F, 9.0F),
+      frame.addOrReplaceChild("footing_low_" + (side + 1), CubeListBuilder.create().texOffs(40, 44).addBox(-4.5F, -2.0F, -4.8F, 9.0F, 4.0F, 9.6F),
           PartPose.offsetAndRotation(side * 12.5F, 17.0F, 0.0F, 0.0F, 0.0F, side * 0.08F));
-      frame.addOrReplaceChild("footing_high_" + (side + 1), CubeListBuilder.create().texOffs(80, 46).addBox(-3.5F, -1.5F, -4.0F, 7.0F, 3.0F, 8.0F),
+      frame.addOrReplaceChild("footing_high_" + (side + 1), CubeListBuilder.create().texOffs(80, 46).addBox(-3.5F, -1.5F, -4.3F, 7.0F, 3.0F, 8.6F),
           PartPose.offsetAndRotation(side * 12.0F, 13.5F, 0.0F, 0.0F, 0.0F, -side * 0.12F));
     }
 
@@ -131,7 +134,7 @@ public class PortalModel extends Model {
     for (int degrees = -140; degrees <= 140; degrees += 14) {
       float angle = degrees * Mth.DEG_TO_RAD;
       float width = 5.0F + Math.round(noise(index, 1));
-      float depth = 7.0F + Math.round(noise(index, 2) * 2.0F);
+      float depth = 7.0F + Math.round(noise(index, 2) * 2.0F) + (index % 2) * 0.2F;
       float inner = 2.0F;
       float outer = 3.0F + 3.0F * Math.max(0.0F, Mth.cos(angle)) + Math.round(noise(index, 3) * 2.0F);
       float tilt = (noise(index, 4) - 0.5F) * 0.3F;
@@ -156,8 +159,8 @@ public class PortalModel extends Model {
   private static void addGlyph(PartDefinition glyphs, String name, int rune, float x, float y, float angle, float depth, float radialOffset) {
 
     CubeListBuilder cubes = CubeListBuilder.create().texOffs((rune % 8) * 8, 0)
-        .addBox(-2.0F, radialOffset - 2.5F, -depth / 2.0F - GLYPH_OFFSET, 4.0F, 5.0F, 0.0F)
-        .addBox(-2.0F, radialOffset - 2.5F, depth / 2.0F + GLYPH_OFFSET, 4.0F, 5.0F, 0.0F);
+        .addBox(-2.0F, radialOffset - 2.5F, -depth / 2.0F - GLYPH_OFFSET, 4.0F, 5.0F, 0.0F, EnumSet.of(Direction.NORTH))
+        .addBox(-2.0F, radialOffset - 2.5F, depth / 2.0F + GLYPH_OFFSET, 4.0F, 5.0F, 0.0F, EnumSet.of(Direction.SOUTH));
 
     glyphs.addOrReplaceChild(name, cubes, PartPose.offsetAndRotation(x, y, 0.0F, 0.0F, 0.0F, angle));
   }
