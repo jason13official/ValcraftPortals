@@ -1,0 +1,14 @@
+{
+  "itemGroup.valcraft_portals": "Valcraft Portals",
+  "tag.item.valcraft_portals.portal_restricted": "Portal Restricted",
+  "block.valcraft_portals.portal": "Portal",
+  "block.valcraft_portals.stone_portal": "Stone Portal",
+  "screen.valcraft_portals.tag": "Portal Tag",
+  "screen.valcraft_portals.tag.hint": "(no tag)",
+  "screen.valcraft_portals.tag.info": "Portals with the same tag connect",
+  "message.valcraft_portals.linked": "Portal \"%s\" connected",
+  "message.valcraft_portals.waiting": "Portal \"%s\" is waiting for a partner",
+  "message.valcraft_portals.full": "Tag \"%s\" already has a connected pair",
+  "message.valcraft_portals.restricted": "An item in your inventory prevents you from using the portal",
+  "message.valcraft_portals.cross_dimension": "This portal cannot reach another dimension"
+}
