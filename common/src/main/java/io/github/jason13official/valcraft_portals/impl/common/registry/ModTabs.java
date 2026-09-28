@@ -17,10 +17,11 @@ public class ModTabs {
 
     VALCRAFT_PORTALS = Services.PLATFORM.creativeTabBuilder()
         .icon(() -> new ItemStack(ModItems.PORTAL))
-        .title(Component.literal(Constants.MOD_NAME))
+        .title(Component.translatable("itemGroup." + Constants.MOD_ID))
         .displayItems((itemDisplayParameters, output) -> {
 
           output.accept(ModItems.PORTAL);
+          output.accept(ModItems.STONE_PORTAL);
         })
         .build();
 

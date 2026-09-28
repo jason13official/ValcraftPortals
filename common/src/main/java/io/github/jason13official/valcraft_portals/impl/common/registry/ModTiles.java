@@ -12,7 +12,7 @@ public class ModTiles {
 
   public static void register(BiConsumer<BlockEntityType<?>, ResourceLocation> consumer) {
 
-    PORTAL = BlockEntityType.Builder.of(PortalBlockEntity::new, ModBlocks.PORTAL).build(null);
+    PORTAL = BlockEntityType.Builder.of(PortalBlockEntity::new, ModBlocks.PORTAL, ModBlocks.STONE_PORTAL).build(null);
 
     consumer.accept(PORTAL, ValcraftPortals.id("portal"));
   }

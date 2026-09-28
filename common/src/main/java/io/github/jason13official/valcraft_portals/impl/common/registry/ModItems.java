@@ -10,11 +10,14 @@ import net.minecraft.world.item.Item.Properties;
 public class ModItems {
 
   public static Item PORTAL;
+  public static Item STONE_PORTAL;
 
   public static void register(BiConsumer<Item, ResourceLocation> consumer) {
 
     PORTAL = new BlockItem(ModBlocks.PORTAL, new Properties().stacksTo(16));
+    STONE_PORTAL = new BlockItem(ModBlocks.STONE_PORTAL, new Properties().stacksTo(16));
 
     consumer.accept(PORTAL, ValcraftPortals.id("portal"));
+    consumer.accept(STONE_PORTAL, ValcraftPortals.id("stone_portal"));
   }
 }

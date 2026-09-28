@@ -1,5 +1,8 @@
 package io.github.jason13official.valcraft_portals.platform.services;
 
+import java.nio.file.Path;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.CreativeModeTab;
 
 public interface IPlatformHelper {
@@ -36,4 +39,8 @@ public interface IPlatformHelper {
   }
 
   CreativeModeTab.Builder creativeTabBuilder();
+
+  Path getConfigDirectory();
+
+  void sendToPlayer(ServerPlayer player, CustomPacketPayload payload);
 }
