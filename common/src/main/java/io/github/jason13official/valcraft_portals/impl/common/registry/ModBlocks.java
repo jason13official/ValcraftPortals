@@ -29,6 +29,7 @@ public class ModBlocks {
     return BlockBehaviour.Properties.of()
         .noCollission()
         .noOcclusion()
+        .noTerrainParticles()
         .pushReaction(PushReaction.BLOCK)
         .lightLevel(state -> state.getValue(PortalBlock.LIT) && PortalBlock.isMaster(state) ? 12 : 0);
   }

@@ -1,20 +1,30 @@
 package io.github.jason13official.valcraft_portals.impl.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import io.github.jason13official.valcraft_portals.ValcraftPortals;
 import io.github.jason13official.valcraft_portals.impl.client.PortalEffects;
 import io.github.jason13official.valcraft_portals.impl.client.model.PortalModel;
 import io.github.jason13official.valcraft_portals.impl.common.block.PortalBlock;
+import io.github.jason13official.valcraft_portals.impl.common.block.PortalPart;
 import io.github.jason13official.valcraft_portals.impl.common.block.entity.PortalBlockEntity;
 import io.github.jason13official.valcraft_portals.impl.common.registry.ModBlocks;
+import io.github.jason13official.valcraft_portals.mixin.LevelRendererAccessor;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import java.util.SortedSet;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
@@ -53,6 +63,8 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
     boolean stone = state.is(ModBlocks.STONE_PORTAL);
     boolean lit = state.getValue(PortalBlock.LIT);
     PortalModel model = stone ? stoneModel : woodModel;
+    PoseStack.Pose origin = pPoseStack.last();
+    int progress = destroyProgress(portal.getBlockPos(), state);
 
     pPoseStack.pushPose();
     pPoseStack.translate(0.5F, 0.0F, 0.5F);
@@ -62,6 +74,13 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
 
     model.renderFrame(pPoseStack, pBufferSource.getBuffer(RenderType.entityCutoutNoCull(stone ? STONE_TEXTURE : WOOD_TEXTURE)), pPackedLight, pPackedOverlay, -1);
     model.renderGlyphs(pPoseStack, pBufferSource.getBuffer(RenderType.entityCutoutNoCull(GLYPH_TEXTURE)), pPackedLight, pPackedOverlay, stone ? STONE_CARVING : WOOD_CARVING);
+
+    if (progress >= 0) {
+      VertexConsumer crumbling = new SheetedDecalTextureGenerator(
+          Minecraft.getInstance().renderBuffers().crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(progress)), origin, 1.0F);
+      model.renderFrame(pPoseStack, crumbling, pPackedLight, pPackedOverlay, -1);
+      model.renderGlyphs(pPoseStack, crumbling, pPackedLight, pPackedOverlay, -1);
+    }
 
     if (lit && portal.getLevel() != null) {
       float time = (portal.getLevel().getGameTime() % 72000L) + pPartialTick;
@@ -87,6 +106,27 @@ public class PortalRenderer implements BlockEntityRenderer<PortalBlockEntity> {
     }
 
     pPoseStack.popPose();
+  }
+
+  private static int destroyProgress(BlockPos master, BlockState state) {
+
+    Long2ObjectMap<SortedSet<BlockDestructionProgress>> destruction = ((LevelRendererAccessor) Minecraft.getInstance().levelRenderer).valcraft_portals$getDestructionProgress();
+
+    SortedSet<BlockDestructionProgress> own = destruction.get(master.asLong());
+    if (own != null && !own.isEmpty()) {
+      return -1;
+    }
+
+    int progress = -1;
+    Direction facing = state.getValue(PortalBlock.FACING);
+    for (PortalPart part : PortalPart.values()) {
+      SortedSet<BlockDestructionProgress> set = destruction.get(PortalBlock.partPos(master, facing, part).asLong());
+      if (set != null && !set.isEmpty()) {
+        progress = Math.max(progress, set.last().getProgress());
+      }
+    }
+
+    return Math.min(progress, ModelBakery.DESTROY_TYPES.size() - 1);
   }
 
   private static void quad(PoseStack.Pose pose, VertexConsumer consumer, float half, float z, int color, int light, int overlay) {

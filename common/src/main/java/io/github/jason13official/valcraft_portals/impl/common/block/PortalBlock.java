@@ -15,6 +15,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -270,9 +272,22 @@ public class PortalBlock extends Block implements EntityBlock {
 
     if (pLevel instanceof ServerLevel level && isMaster(pState) && !pState.is(pNewState.getBlock())) {
       PortalNetwork.get(level.getServer()).remove(level.getServer(), GlobalPos.of(level.dimension(), pPos));
+      spawnBreakParticles(level, pPos, pState.getValue(FACING));
     }
 
     super.onRemove(pState, pLevel, pPos, pNewState, pMovedByPiston);
+  }
+
+  private void spawnBreakParticles(ServerLevel level, BlockPos master, Direction facing) {
+
+    BlockState source = restrictsItems ? Blocks.STRIPPED_OAK_LOG.defaultBlockState() : Blocks.MOSSY_STONE_BRICKS.defaultBlockState();
+    BlockParticleOption particle = new BlockParticleOption(ParticleTypes.BLOCK, source);
+    boolean alongX = alongDirection(facing).getAxis() == Axis.X;
+
+    for (PortalPart part : PortalPart.values()) {
+      BlockPos pos = partPos(master, facing, part);
+      level.sendParticles(particle, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 10, alongX ? 0.3 : 0.08, 0.3, alongX ? 0.08 : 0.3, 0.15);
+    }
   }
 
   @Override
